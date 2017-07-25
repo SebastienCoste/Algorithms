@@ -7,6 +7,10 @@ public class NamedEdge extends Edge {
 	public NamedEdge (Integer capacity, City source, City destination) {
 		super(capacity, source, destination);
 	}
+	
+	public NamedEdge (Edge copy) {
+		super(copy);
+	}
 
 	@Override
 	public int hashCode() {

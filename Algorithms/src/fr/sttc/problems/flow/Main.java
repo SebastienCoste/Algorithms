@@ -65,10 +65,12 @@ public class Main {
 		
 		System.out.println("is valid valid ? " + Validator.isMapValid(valid));
 		assert(Validator.isMapValid(valid));
-		System.out.println("is invalid invalid ? " + !Validator.isMapValid(invalid));
+		System.out.println("is invalid valid ? " + Validator.isMapValid(invalid));
 		assert(!Validator.isMapValid(invalid));
 		
 		System.out.println(valid.getPathSourceToDestination());
+		
+		System.out.println("MaxFlow capacity: " + FordFulkerson.getMaxFlow(valid));
 	}
 
 

@@ -19,7 +19,7 @@ public class World {
 	public Integer flowCapacity = 0;
 	
 	public Map<City, Collection<City>> mapCityToNeightboor = null;
-	public Map<Edge, Integer> edgeSplitWithCapacity = null;
+	public Map<NamedEdge, Integer> edgeSplitWithCapacity = null;
 	
 	public Set<City> cities = new HashSet<>();
 	public Set<NamedEdge> edges = new HashSet<>();
@@ -39,7 +39,7 @@ public class World {
 		//for each flow build the reverse flow of complementary capacity
 		Set<NamedEdge> residualEdges = new HashSet<>(2 * this.flows.size());
 		for (NamedEdge flow : this.flows) {
-			Edge edgeNoCapacity = new Edge(flow);
+			NamedEdge edgeNoCapacity = new NamedEdge(flow);
 			edgeNoCapacity.capacity = 0;
 			Integer edgeCapacity = edgeSplitWithCapacity.get(edgeNoCapacity);
 
@@ -71,7 +71,7 @@ public class World {
 		edgeSplitWithCapacity = new HashMap<>(this.edges.size());
 		//prepare the edges 
 		for (NamedEdge edge: this.edges) {
-			Edge edgeNoCapacity = new Edge(edge);
+			NamedEdge edgeNoCapacity = new NamedEdge(edge);
 			edgeNoCapacity.capacity = 0;
 			edgeSplitWithCapacity.put(edgeNoCapacity, edge.capacity);
 		}
