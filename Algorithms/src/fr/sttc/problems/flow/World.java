@@ -1,12 +1,10 @@
 package fr.sttc.problems.flow;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,9 +15,11 @@ import fr.sttc.problems.flow.City.Type;
 public class World {
 
 	public City source;
-	public City destination;
+
+	public Integer flowCapacity = 0;
 	
 	public Map<City, Collection<City>> mapCityToNeightboor = null;
+	public Map<Edge, Integer> edgeSplitWithCapacity = null;
 	
 	public Set<City> cities = new HashSet<>();
 	public Set<NamedEdge> edges = new HashSet<>();
@@ -32,13 +32,10 @@ public class World {
 	
 	public World buildResidualWorld() {
 
-		Map<Edge, Integer> edgeSplitWithCapacity = new HashMap<>(this.edges.size());
-		//prepare the edges 
-		for (NamedEdge edge: this.edges) {
-			Edge edgeNoCapacity = new Edge(edge);
-			edgeNoCapacity.capacity = 0;
-			edgeSplitWithCapacity.put(edgeNoCapacity, edge.capacity);
+		if (edgeSplitWithCapacity == null) {
+			splitEdgeAndCapacity();
 		}
+		
 		//for each flow build the reverse flow of complementary capacity
 		Set<NamedEdge> residualEdges = new HashSet<>(2 * this.flows.size());
 		for (NamedEdge flow : this.flows) {
@@ -62,10 +59,22 @@ public class World {
 
 		World residualWorld = new World();
 		residualWorld.cities = this.cities;
-		residualWorld.flows = this.flows;
+		residualWorld.flows = new HashSet<>();
 		residualWorld.edges = residualEdges;
-
+		residualWorld.source = this.source;
+		residualWorld.flowCapacity = this.flowCapacity;
+		
 		return residualWorld;
+	}
+
+	private void splitEdgeAndCapacity() {
+		edgeSplitWithCapacity = new HashMap<>(this.edges.size());
+		//prepare the edges 
+		for (NamedEdge edge: this.edges) {
+			Edge edgeNoCapacity = new Edge(edge);
+			edgeNoCapacity.capacity = 0;
+			edgeSplitWithCapacity.put(edgeNoCapacity, edge.capacity);
+		}
 	}
 	
 
@@ -78,6 +87,32 @@ public class World {
 			}
 		}
 		return capacity;
+	}
+	
+	public void updateCapacityAndEdged(List<City> path) {
+		
+		//1st get the minimum size
+		if (edgeSplitWithCapacity == null) {
+			splitEdgeAndCapacity();
+		}
+		Integer minCapacity = Integer.MAX_VALUE;
+		List<NamedEdge> edgesWithoutCapacity = new ArrayList<>();
+		
+		for (int i = 0; i < path.size() -1; i++) {
+			City source = path.get(i);
+			City destination = path.get(i+1);
+			NamedEdge edge = new NamedEdge(0, source, destination);
+			minCapacity = Math.min(minCapacity, edgeSplitWithCapacity.get(edge));
+			edgesWithoutCapacity.add(edge);
+		}
+
+		this.flowCapacity += minCapacity;
+		
+		for (NamedEdge edge : edgesWithoutCapacity) {
+			edge.capacity = minCapacity;
+			this.flows.add(edge);
+		}
+		
 	}
 	
 	public List<City> getPathSourceToDestination() {
