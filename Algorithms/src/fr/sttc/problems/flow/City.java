@@ -4,7 +4,7 @@ public class City {
 
 	@Override
 	public String toString() {
-		return "City [type=" + type + ", name=" + name + ", capacity=" + capacity + "]";
+		return "City["+ type + " / " + name + "]";
 	}
 	public Type type;
 	public String name;

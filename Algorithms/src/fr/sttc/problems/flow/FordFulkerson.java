@@ -9,8 +9,10 @@ public class FordFulkerson {
 		
 		List<City> path = map.getPathSourceToDestination();
 		while (path != null) {
+			System.out.println("intermediate path: " + path);
 			map.updateCapacityAndEdged(path);
 			map = map.buildResidualWorld();
+			System.out.println("intermediate capacity: " + map.flowCapacity);
 			path = map.getPathSourceToDestination();
 		}
 		

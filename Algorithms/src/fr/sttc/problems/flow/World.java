@@ -17,25 +17,25 @@ public class World {
 	public City source;
 
 	public Integer flowCapacity = 0;
-	
+
 	public Map<City, Collection<City>> mapCityToNeightboor = null;
 	public Map<NamedEdge, Integer> edgeSplitWithCapacity = null;
-	
+
 	public Set<City> cities = new HashSet<>();
 	public Set<NamedEdge> edges = new HashSet<>();
 	public Set<NamedEdge> flows = new HashSet<>();
-	
-	
+
+
 	public World() {
-		
+
 	}
-	
+
 	public World buildResidualWorld() {
 
 		if (edgeSplitWithCapacity == null) {
 			splitEdgeAndCapacity();
 		}
-		
+
 		//for each flow build the reverse flow of complementary capacity
 		Set<NamedEdge> residualEdges = new HashSet<>(2 * this.flows.size());
 		for (NamedEdge flow : this.flows) {
@@ -63,7 +63,7 @@ public class World {
 		residualWorld.edges = residualEdges;
 		residualWorld.source = this.source;
 		residualWorld.flowCapacity = this.flowCapacity;
-		
+
 		return residualWorld;
 	}
 
@@ -76,10 +76,10 @@ public class World {
 			edgeSplitWithCapacity.put(edgeNoCapacity, edge.capacity);
 		}
 	}
-	
+
 
 	public Integer getCapacityOfCut(Set<City> cut) {
-		
+
 		Integer capacity = 0;
 		for (NamedEdge edge : this.edges) {
 			if (cut.contains(edge.source) && !cut.contains(edge.destination)) {
@@ -88,16 +88,16 @@ public class World {
 		}
 		return capacity;
 	}
-	
+
 	public void updateCapacityAndEdged(List<City> path) {
-		
+
 		//1st get the minimum size
 		if (edgeSplitWithCapacity == null) {
 			splitEdgeAndCapacity();
 		}
 		Integer minCapacity = Integer.MAX_VALUE;
 		List<NamedEdge> edgesWithoutCapacity = new ArrayList<>();
-		
+
 		for (int i = 0; i < path.size() -1; i++) {
 			City source = path.get(i);
 			City destination = path.get(i+1);
@@ -107,16 +107,16 @@ public class World {
 		}
 
 		this.flowCapacity += minCapacity;
-		
+
 		for (NamedEdge edge : edgesWithoutCapacity) {
 			edge.capacity = minCapacity;
 			this.flows.add(edge);
 		}
-		
+
 	}
-	
+
 	public List<City> getPathSourceToDestination() {
-		
+
 		if (mapCityToNeightboor == null) {
 			buildNeightboor();
 		}
@@ -139,23 +139,27 @@ public class World {
 				return path;
 			} 
 			visited.add(city);
-			for (City neightboor : mapCityToNeightboor.get(city)) {
-				if (!visited.contains(neightboor)) {
-					toVisit.add(neightboor);
-					mapCityAndPrevious.put(neightboor, city);
+			Collection<City> neightboorhood = mapCityToNeightboor.get(city);
+			if (neightboorhood != null && neightboorhood.size() > 0) {
+
+				for (City neightboor : neightboorhood ) {
+					if (!visited.contains(neightboor)) {
+						toVisit.add(neightboor);
+						mapCityAndPrevious.put(neightboor, city);
+					}
 				}
 			}
-			
-			
+
+
 		}
-		
+
 		return null;
 	}
-	
+
 	public void buildNeightboor() {
-		
+
 		mapCityToNeightboor = new HashMap<>();
-		
+
 		for (NamedEdge edge : edges) {
 			Collection<City> neightboor = mapCityToNeightboor.get(edge.source);
 			if (neightboor == null) {
@@ -163,8 +167,8 @@ public class World {
 				mapCityToNeightboor.put(edge.source, neightboor);
 			}
 			neightboor.add(edge.destination);
-			
+
 		}
-		
+
 	}
 }

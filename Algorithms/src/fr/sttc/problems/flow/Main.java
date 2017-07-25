@@ -71,7 +71,30 @@ public class Main {
 		System.out.println(valid.getPathSourceToDestination());
 		
 		System.out.println("MaxFlow capacity: " + FordFulkerson.getMaxFlow(valid));
+		
+		
+		World ffWorld = new World();
+		City s = new City(Type.SOURCE, "s", 0);
+		City t = new City(Type.DESTINATION, "t", 0);
+		City aa = new City(Type.TRANSIT, "aa", 0);
+		City bb = new City(Type.TRANSIT, "bb", 0);
+		City cc = new City(Type.TRANSIT, "cc", 0);
+		City dd = new City(Type.TRANSIT, "dd", 0);
+		Set<City> cities = new HashSet<>(Arrays.asList(s, t, aa, bb, cc, dd));
+		ffWorld.cities = cities;
+		ffWorld.source = s;
+		
+		NamedEdge e3 = new NamedEdge(3, aa, s);
+		NamedEdge e8 = new NamedEdge(8, bb, aa);
+		NamedEdge e7 = new NamedEdge(7, aa, t);
+		NamedEdge e4 = new NamedEdge(4, s, cc);
+		NamedEdge e5 = new NamedEdge(5, cc, bb);
+		NamedEdge e2 = new NamedEdge(2, cc, dd);
+		NamedEdge e1 = new NamedEdge(1, bb, dd);
+		NamedEdge e6 = new NamedEdge(6, t, bb);
+		Set<NamedEdge> edges= new HashSet<>(Arrays.asList(e1, e2, e3, e4, e5, e6, e7, e8));
+		ffWorld.edges = edges;
+		
+		System.out.println("MaxFlow: " + FordFulkerson.getMaxFlow(ffWorld));
 	}
-
-
 }
