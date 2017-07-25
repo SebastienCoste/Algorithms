@@ -115,6 +115,7 @@ public class World {
 
 	}
 
+	//TODO optimisation needed here
 	public List<City> getPathSourceToDestination() {
 
 		if (mapCityToNeightboor == null) {
