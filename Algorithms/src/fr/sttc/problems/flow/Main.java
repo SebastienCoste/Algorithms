@@ -17,6 +17,9 @@ public class Main {
 		City a = new City(Type.SOURCE, "a", 10);
 		valid.cities.add(a);
 		invalid.cities.add(a);
+		valid.source = a;
+		invalid.source = a;
+		
 		City b = new City(Type.TRANSIT, "b", 10);
 		valid.cities.add(b);
 		invalid.cities.add(b);
@@ -65,7 +68,7 @@ public class Main {
 		System.out.println("is invalid invalid ? " + !Validator.isMapValid(invalid));
 		assert(!Validator.isMapValid(invalid));
 		
-	
+		valid.hasPathSourceToDestination();
 	}
 
 

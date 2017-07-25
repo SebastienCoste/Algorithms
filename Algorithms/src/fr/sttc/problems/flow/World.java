@@ -1,17 +1,26 @@
 package fr.sttc.problems.flow;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
+
+import fr.sttc.problems.flow.City.Type;
 
 public class World {
 
-
+	public City source;
+	public City destination;
+	
+	public Map<City, Collection<City>> mapCityToNeightboor = null;
+	
 	public Set<City> cities = new HashSet<>();
 	public Set<NamedEdge> edges = new HashSet<>();
-	
 	public Set<NamedEdge> flows = new HashSet<>();
+	
 	
 	public World() {
 		
@@ -54,6 +63,7 @@ public class World {
 
 		return residualWorld;
 	}
+	
 
 	public Integer getCapacityOfCut(Set<City> cut) {
 		
@@ -64,5 +74,46 @@ public class World {
 			}
 		}
 		return capacity;
+	}
+	
+	public boolean hasPathSourceToDestination() {
+		
+		if (mapCityToNeightboor == null) {
+			buildNeightboor();
+		}
+		//We need one, not the best, DFS is easier to compute
+		Set<City> visited = new HashSet<>();
+		Stack<City> toVisit = new Stack<>();
+		toVisit.add(source);
+		while(!toVisit.isEmpty()) {
+			City city = toVisit.pop();
+			if (city.type == Type.DESTINATION) {
+				return true;
+			} 
+			visited.add(city);
+			for (City neightboor : mapCityToNeightboor.get(city)) {
+				if (!visited.contains(neightboor)) {
+					toVisit.add(neightboor);
+				}
+			}
+		}
+		
+		return false;
+	}
+	
+	public void buildNeightboor() {
+		
+		mapCityToNeightboor = new HashMap<>();
+		
+		for (NamedEdge edge : edges) {
+			Collection<City> neightboor = mapCityToNeightboor.get(edge.source);
+			if (neightboor == null) {
+				neightboor = new HashSet<>();
+				mapCityToNeightboor.put(edge.source, neightboor);
+			}
+			neightboor.add(edge.destination);
+			
+		}
+		
 	}
 }
