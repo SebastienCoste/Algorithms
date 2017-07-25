@@ -68,7 +68,7 @@ public class Main {
 		System.out.println("is invalid invalid ? " + !Validator.isMapValid(invalid));
 		assert(!Validator.isMapValid(invalid));
 		
-		valid.hasPathSourceToDestination();
+		System.out.println(valid.getPathSourceToDestination());
 	}
 
 

@@ -2,6 +2,10 @@ package fr.sttc.problems.flow;
 
 public class City {
 
+	@Override
+	public String toString() {
+		return "City [type=" + type + ", name=" + name + ", capacity=" + capacity + "]";
+	}
 	public Type type;
 	public String name;
 	public Integer capacity;

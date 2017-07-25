@@ -1,9 +1,13 @@
 package fr.sttc.problems.flow;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
@@ -76,7 +80,7 @@ public class World {
 		return capacity;
 	}
 	
-	public boolean hasPathSourceToDestination() {
+	public List<City> getPathSourceToDestination() {
 		
 		if (mapCityToNeightboor == null) {
 			buildNeightboor();
@@ -84,21 +88,33 @@ public class World {
 		//We need one, not the best, DFS is easier to compute
 		Set<City> visited = new HashSet<>();
 		Stack<City> toVisit = new Stack<>();
+		Map<City, City> mapCityAndPrevious = new HashMap<>();
 		toVisit.add(source);
 		while(!toVisit.isEmpty()) {
 			City city = toVisit.pop();
 			if (city.type == Type.DESTINATION) {
-				return true;
+				List<City> path = new ArrayList<>();
+				path.add(city);
+				City previous = mapCityAndPrevious.get(city);
+				while(previous != null) {
+					path.add(previous);
+					previous = mapCityAndPrevious.get(previous);
+				}
+				Collections.reverse(path);
+				return path;
 			} 
 			visited.add(city);
 			for (City neightboor : mapCityToNeightboor.get(city)) {
 				if (!visited.contains(neightboor)) {
 					toVisit.add(neightboor);
+					mapCityAndPrevious.put(neightboor, city);
 				}
 			}
+			
+			
 		}
 		
-		return false;
+		return null;
 	}
 	
 	public void buildNeightboor() {
