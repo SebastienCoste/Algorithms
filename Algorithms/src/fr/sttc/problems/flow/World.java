@@ -5,8 +5,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
 
@@ -25,10 +27,6 @@ public class World {
 	public Set<NamedEdge> edges = new HashSet<>();
 	public Set<NamedEdge> flows = new HashSet<>();
 
-
-	public World() {
-
-	}
 
 	public World buildResidualWorld() {
 
@@ -77,7 +75,6 @@ public class World {
 		}
 	}
 
-
 	public Integer getCapacityOfCut(Set<City> cut) {
 
 		Integer capacity = 0;
@@ -123,11 +120,12 @@ public class World {
 		}
 		//We need one, not the best, DFS is easier to compute
 		Set<City> visited = new HashSet<>();
-		Stack<City> toVisit = new Stack<>();
+		Stack<City> toVisitDFS = new Stack<>();
+		Queue<City> toVisitBFS = new LinkedList<>();
 		Map<City, City> mapCityAndPrevious = new HashMap<>();
-		toVisit.add(source);
-		while(!toVisit.isEmpty()) {
-			City city = toVisit.pop();
+		toVisitBFS.add(source);
+		while(!toVisitBFS.isEmpty()) {
+			City city = toVisitBFS.poll();
 			if (city.type == Type.DESTINATION) {
 				List<City> path = new ArrayList<>();
 				path.add(city);
@@ -145,7 +143,7 @@ public class World {
 
 				for (City neightboor : neightboorhood ) {
 					if (!visited.contains(neightboor)) {
-						toVisit.add(neightboor);
+						toVisitBFS.add(neightboor);
 						mapCityAndPrevious.put(neightboor, city);
 					}
 				}
