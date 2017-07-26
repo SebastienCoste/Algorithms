@@ -11,6 +11,7 @@ public class WorldBuilder {
 
 	public World map;
 	public Map <String, City> cityByName = null;
+	public Integer cityCapacity = 0;
 	
 	public WorldBuilder (World map) {
 		this.map = map;
@@ -20,10 +21,10 @@ public class WorldBuilder {
 		cityByName = new HashMap<>();
 		map.edgeSplitWithCapacity = new HashMap<>();
 		
-		City source = new City(Type.SOURCE, sourceName, 0);
+		City source = new City(Type.SOURCE, sourceName, cityCapacity);
 		map.source = source;
 		cityByName.put(sourceName, source);
-		City destination = new City(Type.DESTINATION, destinationName, 0);
+		City destination = new City(Type.DESTINATION, destinationName, cityCapacity);
 		cityByName.put(destinationName, destination);
 	}
 
@@ -54,7 +55,7 @@ public class WorldBuilder {
 	private City getCityByName(String name) {
 		City city = cityByName.get(name);
 		if (city == null) {
-			city = new City(Type.TRANSIT, name, 0);
+			city = new City(Type.TRANSIT, name, cityCapacity);
 		}
 		return city;
 	}
