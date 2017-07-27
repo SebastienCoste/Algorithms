@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -27,21 +28,22 @@ public class AirlineCrews {
 	public void solve() throws IOException {
 		in = new FastScanner();
 		out = new PrintWriter(new BufferedOutputStream(System.out));
-		boolean[][] bipartiteGraph = readData();
+						boolean[][] bipartiteGraph = readData();
 
-		//        3 4
 //		long start = new Date().getTime();
-//		boolean [][] bipartiteGraph = new boolean [100][100];
-//		for (int i = 0; i  < 100; i++) {
-//			for (int j = 0; j  < 100; j++) {
-//				bipartiteGraph [i][j] = true;
+//		int size = 100;
+//		boolean [][] bipartiteGraph = new boolean [size][size];
+//		for (int i = 0; i  < size; i++) {
+//			for (int j = 0; j  < size; j++) {
+//				bipartiteGraph [i][j] = i<=j;
 //			}	
 //		}
-//				boolean [][] bipartiteGraph = {
-//						{true, true, false, true},
-//						{false, true, false, false},
-//						{false, false, false, false}};
-		Set<Integer> valid = new HashSet<>(100);
+		//						boolean [][] bipartiteGraph = {
+		//								{true, true, false, true},
+		//								{false, true, false, false},
+		//								{false, false, false, false}};
+		//				Set<Integer> valid = new HashSet<>(100);
+
 		int[] matching = findMatching(bipartiteGraph);
 		writeResponse(matching);
 		out.close();
@@ -56,14 +58,25 @@ public class AirlineCrews {
 		int[] assignment = new int[flightLength];
 
 		World map = buildMapFromGraph(bipartiteGraph);
-		List<List<City>> paths = FordFulkerson.getPathsMaxFlow(map);
-		for (List<City> list : paths) {
-			int flight = list.size()-3;
-			int crew = list.size() -2;
-			assignment[Integer.valueOf(list.get(flight).name) -1] = Integer.valueOf(list.get(crew).name) - flightLength; 
-		}
+
+		map = FordFulkerson.getMaxFlow(map);
+
+		fillAssignement(flightLength, assignment, map);
 
 		return assignment;
+	}
+
+	private void fillAssignement(int flightLength, int[] assignment, World map) {
+		for (NamedEdge edge : map.edges) {
+			if (edge.source.type == Type.TRANSIT && edge.destination.type == Type.TRANSIT) {
+				Integer src = Integer.valueOf(edge.source.name);
+				Integer dst = Integer.valueOf(edge.destination.name);
+				if (src>dst) {
+					//The remaining flow in reverse order is the good assignment
+					assignment[dst-1] = src - flightLength;
+				}
+			}
+		}
 	}
 
 	private World buildMapFromGraph(boolean[][] bipartiteGraph) {
@@ -94,8 +107,7 @@ public class AirlineCrews {
 
 		mapBuilder.buildFromStream();
 
-		World map = mapBuilder.map;
-		return map;
+		return mapBuilder.map;
 	}
 
 	boolean[][] readData() throws IOException {
@@ -251,36 +263,15 @@ public class AirlineCrews {
 	public static class FordFulkerson {
 
 
-		public static Integer getMaxFlow(World map) {
+		public static World getMaxFlow(World map) {
 
 			List<City> path = map.getPathSourceToDestination();
 			while (path != null) {
-				//				System.out.println("intermediate path: " + path);
 				map.updateCapacityAndEdged(path);
 				map = map.buildResidualWorld();
-				//				System.out.println("intermediate capacity: " + map.flowCapacity);
 				path = map.getPathSourceToDestination();
 			}
-
-
-			return map.flowCapacity;
-		}
-
-		public static List<List<City>> getPathsMaxFlow(World map) {
-
-			List<List<City>> validPaths = new ArrayList<>();
-			List<City> path = map.getPathSourceToDestination();
-			while (path != null) {
-				//				System.out.println("intermediate path: " + path);
-				validPaths.add(path);
-				map.updateCapacityAndEdged(path);
-				map = map.buildResidualWorld();
-				//				System.out.println("intermediate capacity: " + map.flowCapacity);
-				path = map.getPathSourceToDestination();
-			}
-
-
-			return validPaths;
+			return map;
 		}
 	}
 
@@ -353,58 +344,35 @@ public class AirlineCrews {
 
 		public World buildResidualWorld() {
 
-			if (edgeSplitWithCapacity == null) {
-				splitEdgeAndCapacity();
-			}
-
 			//for each flow build the reverse flow of complementary capacity
-			Set<NamedEdge> residualEdges = new HashSet<>(this.edges.size() - this.flows.size() +1);
+			Set<NamedEdge> residualEdges = new HashSet<>(this.edges.size());
 			for (NamedEdge flow : this.flows) {
-//				NamedEdge edgeNoCapacity = new NamedEdge(flow);
-				flow.capacity = 0;
-//				Integer edgeCapacity = edgeSplitWithCapacity.get(edgeNoCapacity);
-
-//				if (flow.capacity > 0) {
-					NamedEdge oppositeFlow = new NamedEdge(1, 
-							flow.destination, flow.source);
-//					oppositeFlow.roadName = flow.roadName;
-					residualEdges.add(oppositeFlow);
-//				}
-//				if (flow.capacity < edgeCapacity) {
-//					NamedEdge residualFlow = new NamedEdge(edgeCapacity - flow.capacity, 
-//							flow.source, flow.destination);
-//					residualFlow.roadName = flow.roadName;
-//					residualEdges.add(residualFlow);
-//				}
-
-				edgeSplitWithCapacity.remove(flow);
+				NamedEdge oppositeFlow = new NamedEdge(1, flow.destination, flow.source);
+				residualEdges.add(oppositeFlow);
+				addNeightboor(flow.destination, flow.source);
+				removeNeightboor(flow.source, flow.destination);
+				this.edges.remove(flow);
 			}
-			if (edgeSplitWithCapacity.size()>0) {
-				for (NamedEdge key : edgeSplitWithCapacity.keySet()) {
-					key.capacity = 1;
-					residualEdges.add(key);
-				}
-			}
-			edgeSplitWithCapacity = null;
+			this.edges.addAll(residualEdges);
+			this.flows = new HashSet<>();
 
-			World residualWorld = new World();
-			residualWorld.cities = this.cities;
-			residualWorld.flows = new HashSet<>();
-			residualWorld.edges = residualEdges;
-			residualWorld.source = this.source;
-			residualWorld.flowCapacity = this.flowCapacity;
-
-			return residualWorld;
+			return this;
 		}
 
-		private void splitEdgeAndCapacity() {
-			edgeSplitWithCapacity = new HashMap<>(this.edges.size());
-			//prepare the edges 
-			for (NamedEdge edge: this.edges) {
-				NamedEdge edgeNoCapacity = new NamedEdge(edge);
-				edgeNoCapacity.capacity = 0;
-				edgeSplitWithCapacity.put(edgeNoCapacity, edge.capacity);
+		private void removeNeightboor(City origin, City neightboor) {
+			Collection<City> neightboors = this.mapCityToNeightboor.get(origin);
+			if (neightboors != null) {
+				neightboors.remove(neightboor);
 			}
+		}
+
+		private void addNeightboor(City origin, City neightboor) {
+			Collection<City> neightboors = this.mapCityToNeightboor.get(origin);
+			if (neightboors == null) {
+				neightboors = new HashSet<>();
+				mapCityToNeightboor.put(origin, neightboors);
+			}
+			neightboors.add(neightboor);
 		}
 
 		public Integer getCapacityOfCut(Set<City> cut) {
@@ -420,29 +388,17 @@ public class AirlineCrews {
 
 		public void updateCapacityAndEdged(List<City> path) {
 
-			//1st get the minimum size
-			splitEdgeAndCapacity();
-			Integer minCapacity = Integer.MAX_VALUE;
-			List<NamedEdge> edgesWithoutCapacity = new ArrayList<>();
-
 			for (int i = 0; i < path.size() -1; i++) {
-				City source = path.get(i);
-				City destination = path.get(i+1);
-				NamedEdge edge = new NamedEdge(0, source, destination);
-				minCapacity = Math.min(minCapacity, edgeSplitWithCapacity.get(edge));
-				edgesWithoutCapacity.add(edge);
-			}
-
-			this.flowCapacity += minCapacity;
-
-			for (NamedEdge edge : edgesWithoutCapacity) {
-				edge.capacity = minCapacity;
+				City source = path.get(i+1);
+				City destination = path.get(i);
+				NamedEdge edge = new NamedEdge(1, source, destination);
 				this.flows.add(edge);
 			}
 
+			this.flowCapacity += 1;
+
 		}
 
-		//TODO optimisation needed here
 		public List<City> getPathSourceToDestination() {
 
 			if (mapCityToNeightboor == null) {
@@ -451,7 +407,6 @@ public class AirlineCrews {
 			//We need one, not the best, DFS is easier to compute
 			Set<City> visited = new HashSet<>();
 			Stack<City> toVisitDFS = new Stack<>();
-			//			Queue<City> toVisitBFS = new LinkedList<>();
 			Map<City, City> mapCityAndPrevious = new HashMap<>();
 			toVisitDFS.add(source);
 			while(!toVisitDFS.isEmpty()) {
@@ -466,7 +421,6 @@ public class AirlineCrews {
 							path.add(previous);
 							previous = mapCityAndPrevious.get(previous);
 						}
-						Collections.reverse(path);
 						return path;
 					} 
 					visited.add(city);
