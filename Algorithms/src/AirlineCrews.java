@@ -8,12 +8,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Queue;
 import java.util.Set;
+import java.util.Stack;
 import java.util.StringTokenizer;
 
 
@@ -28,30 +27,42 @@ public class AirlineCrews {
 	public void solve() throws IOException {
 		in = new FastScanner();
 		out = new PrintWriter(new BufferedOutputStream(System.out));
-		        boolean[][] bipartiteGraph = readData();
+		boolean[][] bipartiteGraph = readData();
 
 		//        3 4
-//		boolean [][] bipartiteGraph = {
-//				{true, true, false, true},
-//				{false, true, false, false},
-//				{false, false, false, false}};
-
+//		long start = new Date().getTime();
+//		boolean [][] bipartiteGraph = new boolean [100][100];
+//		for (int i = 0; i  < 100; i++) {
+//			for (int j = 0; j  < 100; j++) {
+//				bipartiteGraph [i][j] = true;
+//			}	
+//		}
+//				boolean [][] bipartiteGraph = {
+//						{true, true, false, true},
+//						{false, true, false, false},
+//						{false, false, false, false}};
+		Set<Integer> valid = new HashSet<>(100);
 		int[] matching = findMatching(bipartiteGraph);
 		writeResponse(matching);
 		out.close();
+
+//		long stop = new Date().getTime();
+//		System.err.println(stop - start);
 	}
 
 	private int[] findMatching(boolean[][] bipartiteGraph) {
 
 		int flightLength = bipartiteGraph.length;
 		int[] assignment = new int[flightLength];
-		
+
 		World map = buildMapFromGraph(bipartiteGraph);
 		List<List<City>> paths = FordFulkerson.getPathsMaxFlow(map);
 		for (List<City> list : paths) {
-			assignment[Integer.valueOf(list.get(1).name) -1] = Integer.valueOf(list.get(2).name) - flightLength; 
+			int flight = list.size()-3;
+			int crew = list.size() -2;
+			assignment[Integer.valueOf(list.get(flight).name) -1] = Integer.valueOf(list.get(crew).name) - flightLength; 
 		}
-		
+
 		return assignment;
 	}
 
@@ -76,13 +87,13 @@ public class AirlineCrews {
 			}
 			mapBuilder.prepareEdgeSplitWithCapacity("0", String.valueOf(flight+1), 1);
 		}
-		
+
 		for (int crew = 0; crew < crewLength; ++crew) {
 			mapBuilder.prepareEdgeSplitWithCapacity(String.valueOf(flightLength + crew +1), sink, 1);	
 		}
 
 		mapBuilder.buildFromStream();
-		
+
 		World map = mapBuilder.map;
 		return map;
 	}
@@ -254,7 +265,7 @@ public class AirlineCrews {
 
 			return map.flowCapacity;
 		}
-		
+
 		public static List<List<City>> getPathsMaxFlow(World map) {
 
 			List<List<City>> validPaths = new ArrayList<>();
@@ -347,31 +358,31 @@ public class AirlineCrews {
 			}
 
 			//for each flow build the reverse flow of complementary capacity
-			Set<NamedEdge> residualEdges = new HashSet<>(2 * this.flows.size());
+			Set<NamedEdge> residualEdges = new HashSet<>(this.edges.size() - this.flows.size() +1);
 			for (NamedEdge flow : this.flows) {
-				NamedEdge edgeNoCapacity = new NamedEdge(flow);
-				edgeNoCapacity.capacity = 0;
-				Integer edgeCapacity = edgeSplitWithCapacity.get(edgeNoCapacity);
+//				NamedEdge edgeNoCapacity = new NamedEdge(flow);
+				flow.capacity = 0;
+//				Integer edgeCapacity = edgeSplitWithCapacity.get(edgeNoCapacity);
 
-				if (flow.capacity > 0) {
-					NamedEdge oppositeFlow = new NamedEdge(flow.capacity, 
+//				if (flow.capacity > 0) {
+					NamedEdge oppositeFlow = new NamedEdge(1, 
 							flow.destination, flow.source);
-					oppositeFlow.roadName = flow.roadName;
+//					oppositeFlow.roadName = flow.roadName;
 					residualEdges.add(oppositeFlow);
-				}
-				if (flow.capacity < edgeCapacity) {
-					NamedEdge residualFlow = new NamedEdge(edgeCapacity - flow.capacity, 
-							flow.source, flow.destination);
-					residualFlow.roadName = flow.roadName;
-					residualEdges.add(residualFlow);
-				}
+//				}
+//				if (flow.capacity < edgeCapacity) {
+//					NamedEdge residualFlow = new NamedEdge(edgeCapacity - flow.capacity, 
+//							flow.source, flow.destination);
+//					residualFlow.roadName = flow.roadName;
+//					residualEdges.add(residualFlow);
+//				}
 
-				edgeSplitWithCapacity.remove(edgeNoCapacity);
+				edgeSplitWithCapacity.remove(flow);
 			}
 			if (edgeSplitWithCapacity.size()>0) {
-				for (Entry<NamedEdge, Integer> edgeEntry : edgeSplitWithCapacity.entrySet()) {
-					NamedEdge key = edgeEntry.getKey();
-					residualEdges.add(new NamedEdge(edgeEntry.getValue(), key.source, key.destination));
+				for (NamedEdge key : edgeSplitWithCapacity.keySet()) {
+					key.capacity = 1;
+					residualEdges.add(key);
 				}
 			}
 			edgeSplitWithCapacity = null;
@@ -439,12 +450,12 @@ public class AirlineCrews {
 			}
 			//We need one, not the best, DFS is easier to compute
 			Set<City> visited = new HashSet<>();
-			//			Stack<City> toVisitDFS = new Stack<>();
-			Queue<City> toVisitBFS = new LinkedList<>();
+			Stack<City> toVisitDFS = new Stack<>();
+			//			Queue<City> toVisitBFS = new LinkedList<>();
 			Map<City, City> mapCityAndPrevious = new HashMap<>();
-			toVisitBFS.add(source);
-			while(!toVisitBFS.isEmpty()) {
-				City city = toVisitBFS.poll();
+			toVisitDFS.add(source);
+			while(!toVisitDFS.isEmpty()) {
+				City city = toVisitDFS.pop();
 				if (!visited.contains(city)) {
 
 					if (city.type == Type.DESTINATION) {
@@ -464,7 +475,7 @@ public class AirlineCrews {
 
 						for (City neightboor : neightboorhood ) {
 							if (!visited.contains(neightboor)) {
-								toVisitBFS.add(neightboor);
+								toVisitDFS.add(neightboor);
 								mapCityAndPrevious.put(neightboor, city);
 							}
 						}
