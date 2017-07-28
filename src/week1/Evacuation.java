@@ -1,138 +1,72 @@
-import java.io.BufferedOutputStream;
+package week1;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
 import java.util.Set;
-import java.util.Stack;
 import java.util.StringTokenizer;
 
-
-public class AirlineCrews {
-	private FastScanner in;
-	private PrintWriter out;
+public class Evacuation {
+	private static FastScanner in;
 
 	public static void main(String[] args) throws IOException {
-		new AirlineCrews().solve();
-	}
-
-	public void solve() throws IOException {
 		in = new FastScanner();
-		out = new PrintWriter(new BufferedOutputStream(System.out));
-						boolean[][] bipartiteGraph = readData();
-
-//		long start = new Date().getTime();
-//		int size = 100;
-//		boolean [][] bipartiteGraph = new boolean [size][size];
-//		for (int i = 0; i  < size; i++) {
-//			for (int j = 0; j  < size; j++) {
-//				bipartiteGraph [i][j] = i<=j;
-//			}	
-//		}
-		//						boolean [][] bipartiteGraph = {
-		//								{true, true, false, true},
-		//								{false, true, false, false},
-		//								{false, false, false, false}};
-		//				Set<Integer> valid = new HashSet<>(100);
-
-		int[] matching = findMatching(bipartiteGraph);
-		writeResponse(matching);
-		out.close();
-
-//		long stop = new Date().getTime();
-//		System.err.println(stop - start);
-	}
-
-	private int[] findMatching(boolean[][] bipartiteGraph) {
-
-		int flightLength = bipartiteGraph.length;
-		int[] assignment = new int[flightLength];
-
-		World map = buildMapFromGraph(bipartiteGraph);
-
-		map = FordFulkerson.getMaxFlow(map);
-
-		fillAssignement(flightLength, assignment, map);
-
-		return assignment;
-	}
-
-	private void fillAssignement(int flightLength, int[] assignment, World map) {
-		for (NamedEdge edge : map.edges) {
-			if (edge.source.type == Type.TRANSIT && edge.destination.type == Type.TRANSIT) {
-				Integer src = Integer.valueOf(edge.source.name);
-				Integer dst = Integer.valueOf(edge.destination.name);
-				if (src>dst) {
-					//The remaining flow in reverse order is the good assignment
-					assignment[dst-1] = src - flightLength;
-				}
-			}
-		}
-	}
-
-	private World buildMapFromGraph(boolean[][] bipartiteGraph) {
+		List<String> inputs = null;Arrays.asList("5", "7",
+				"1", "2", "2",
+				"2", "5", "5",
+				"1", "3", "6",
+				"3", "4", "2",
+				"4", "5", "1",
+				"3", "2", "3",
+				"2", "4", "1");
 		WorldBuilder mapBuilder = new WorldBuilder(); 
-		int crewLength = bipartiteGraph[0].length;
-		int flightLength = bipartiteGraph.length;
-		int maxEdgeCount = crewLength * flightLength + crewLength + flightLength;
+		World map = readGraph(mapBuilder, inputs);
 
-		String sink = String.valueOf(flightLength + crewLength +1);
-		mapBuilder.initLoadingFromStream("0", 
-				sink, flightLength + crewLength +2, maxEdgeCount);
+		Integer maxFlow = FordFulkerson.getMaxFlow(map);
 
-		for (int flight = 0; flight < flightLength; ++flight) {
-			for (int crew = 0; crew < bipartiteGraph[flight].length; ++crew) {
-				if (bipartiteGraph[flight][crew]) {
-					mapBuilder.prepareEdgeSplitWithCapacity(
-							String.valueOf(flight+1), 
-							String.valueOf(flightLength + crew +1), 
-							1);
-				}
-			}
-			mapBuilder.prepareEdgeSplitWithCapacity("0", String.valueOf(flight+1), 1);
-		}
-
-		for (int crew = 0; crew < crewLength; ++crew) {
-			mapBuilder.prepareEdgeSplitWithCapacity(String.valueOf(flightLength + crew +1), sink, 1);	
-		}
-
-		mapBuilder.buildFromStream();
-
-		return mapBuilder.map;
-	}
-
-	boolean[][] readData() throws IOException {
-		int numLeft = in.nextInt();
-		int numRight = in.nextInt();
-		boolean[][] adjMatrix = new boolean[numLeft][numRight];
-		for (int i = 0; i < numLeft; ++i)
-			for (int j = 0; j < numRight; ++j)
-				adjMatrix[i][j] = (in.nextInt() == 1);
-		return adjMatrix;
+		System.out.println(maxFlow);
 	}
 
 
-	private void writeResponse(int[] matching) {
-		for (int i = 0; i < matching.length; ++i) {
-			if (i > 0) {
-				out.print(" ");
+	static World readGraph(WorldBuilder mapBuilder, List<String> inputs) throws IOException {
+
+		if (inputs == null) {
+
+			int vertex_count = in.nextInt();
+			int edge_count = in.nextInt();
+
+			mapBuilder.initLoadingFromStream("0", String.valueOf(vertex_count-1), vertex_count, edge_count);
+
+			for (int i = 0; i < edge_count; ++i) {
+				int from = in.nextInt() - 1, to = in.nextInt() - 1, capacity = in.nextInt();
+				mapBuilder.prepareEdgeSplitWithCapacity(String.valueOf(from), String.valueOf(to), capacity);
 			}
-			if (matching[i] <= 0) {
-				out.print("-1");
-			} else {
-				out.print(matching[i]);
+		} else {
+			int vertex_count = Integer.valueOf(inputs.get(0));
+			int edge_count = Integer.valueOf(inputs.get(1));
+			mapBuilder.initLoadingFromStream("0", String.valueOf(vertex_count-1), vertex_count, edge_count);
+
+			int count = 2;
+			for (int i = 0; i < edge_count; ++i) {
+				int from = Integer.valueOf(inputs.get(count++)) - 1;
+				int to = Integer.valueOf(inputs.get(count++)) - 1;
+				int capacity = Integer.valueOf(inputs.get(count++));
+				mapBuilder.prepareEdgeSplitWithCapacity(String.valueOf(from), String.valueOf(to), capacity);
 			}
 		}
-		out.println();
+
+		return mapBuilder.buildFromStream();
 	}
 
 	static class FastScanner {
@@ -263,15 +197,19 @@ public class AirlineCrews {
 	public static class FordFulkerson {
 
 
-		public static World getMaxFlow(World map) {
+		public static Integer getMaxFlow(World map) {
 
 			List<City> path = map.getPathSourceToDestination();
 			while (path != null) {
+//				System.out.println("intermediate path: " + path);
 				map.updateCapacityAndEdged(path);
 				map = map.buildResidualWorld();
+//				System.out.println("intermediate capacity: " + map.flowCapacity);
 				path = map.getPathSourceToDestination();
 			}
-			return map;
+
+
+			return map.flowCapacity;
 		}
 	}
 
@@ -344,35 +282,58 @@ public class AirlineCrews {
 
 		public World buildResidualWorld() {
 
+			if (edgeSplitWithCapacity == null) {
+				splitEdgeAndCapacity();
+			}
+
 			//for each flow build the reverse flow of complementary capacity
-			Set<NamedEdge> residualEdges = new HashSet<>(this.edges.size());
+			Set<NamedEdge> residualEdges = new HashSet<>(2 * this.flows.size());
 			for (NamedEdge flow : this.flows) {
-				NamedEdge oppositeFlow = new NamedEdge(1, flow.destination, flow.source);
-				residualEdges.add(oppositeFlow);
-				addNeightboor(flow.destination, flow.source);
-				removeNeightboor(flow.source, flow.destination);
-				this.edges.remove(flow);
-			}
-			this.edges.addAll(residualEdges);
-			this.flows = new HashSet<>();
+				NamedEdge edgeNoCapacity = new NamedEdge(flow);
+				edgeNoCapacity.capacity = 0;
+				Integer edgeCapacity = edgeSplitWithCapacity.get(edgeNoCapacity);
 
-			return this;
+				if (flow.capacity > 0) {
+					NamedEdge oppositeFlow = new NamedEdge(flow.capacity, 
+							flow.destination, flow.source);
+					oppositeFlow.roadName = flow.roadName;
+					residualEdges.add(oppositeFlow);
+				}
+				if (flow.capacity < edgeCapacity) {
+					NamedEdge residualFlow = new NamedEdge(edgeCapacity - flow.capacity, 
+							flow.source, flow.destination);
+					residualFlow.roadName = flow.roadName;
+					residualEdges.add(residualFlow);
+				}
+				
+				edgeSplitWithCapacity.remove(edgeNoCapacity);
+			}
+			if (edgeSplitWithCapacity.size()>0) {
+				for (Entry<NamedEdge, Integer> edgeEntry : edgeSplitWithCapacity.entrySet()) {
+					NamedEdge key = edgeEntry.getKey();
+					residualEdges.add(new NamedEdge(edgeEntry.getValue(), key.source, key.destination));
+				}
+			}
+			edgeSplitWithCapacity = null;
+
+			World residualWorld = new World();
+			residualWorld.cities = this.cities;
+			residualWorld.flows = new HashSet<>();
+			residualWorld.edges = residualEdges;
+			residualWorld.source = this.source;
+			residualWorld.flowCapacity = this.flowCapacity;
+
+			return residualWorld;
 		}
 
-		private void removeNeightboor(City origin, City neightboor) {
-			Collection<City> neightboors = this.mapCityToNeightboor.get(origin);
-			if (neightboors != null) {
-				neightboors.remove(neightboor);
+		private void splitEdgeAndCapacity() {
+			edgeSplitWithCapacity = new HashMap<>(this.edges.size());
+			//prepare the edges 
+			for (NamedEdge edge: this.edges) {
+				NamedEdge edgeNoCapacity = new NamedEdge(edge);
+				edgeNoCapacity.capacity = 0;
+				edgeSplitWithCapacity.put(edgeNoCapacity, edge.capacity);
 			}
-		}
-
-		private void addNeightboor(City origin, City neightboor) {
-			Collection<City> neightboors = this.mapCityToNeightboor.get(origin);
-			if (neightboors == null) {
-				neightboors = new HashSet<>();
-				mapCityToNeightboor.put(origin, neightboors);
-			}
-			neightboors.add(neightboor);
 		}
 
 		public Integer getCapacityOfCut(Set<City> cut) {
@@ -388,17 +349,29 @@ public class AirlineCrews {
 
 		public void updateCapacityAndEdged(List<City> path) {
 
+			//1st get the minimum size
+			splitEdgeAndCapacity();
+			Integer minCapacity = Integer.MAX_VALUE;
+			List<NamedEdge> edgesWithoutCapacity = new ArrayList<>();
+
 			for (int i = 0; i < path.size() -1; i++) {
-				City source = path.get(i+1);
-				City destination = path.get(i);
-				NamedEdge edge = new NamedEdge(1, source, destination);
+				City source = path.get(i);
+				City destination = path.get(i+1);
+				NamedEdge edge = new NamedEdge(0, source, destination);
+				minCapacity = Math.min(minCapacity, edgeSplitWithCapacity.get(edge));
+				edgesWithoutCapacity.add(edge);
+			}
+
+			this.flowCapacity += minCapacity;
+
+			for (NamedEdge edge : edgesWithoutCapacity) {
+				edge.capacity = minCapacity;
 				this.flows.add(edge);
 			}
 
-			this.flowCapacity += 1;
-
 		}
 
+		//TODO optimisation needed here
 		public List<City> getPathSourceToDestination() {
 
 			if (mapCityToNeightboor == null) {
@@ -406,11 +379,12 @@ public class AirlineCrews {
 			}
 			//We need one, not the best, DFS is easier to compute
 			Set<City> visited = new HashSet<>();
-			Stack<City> toVisitDFS = new Stack<>();
+			//			Stack<City> toVisitDFS = new Stack<>();
+			Queue<City> toVisitBFS = new LinkedList<>();
 			Map<City, City> mapCityAndPrevious = new HashMap<>();
-			toVisitDFS.add(source);
-			while(!toVisitDFS.isEmpty()) {
-				City city = toVisitDFS.pop();
+			toVisitBFS.add(source);
+			while(!toVisitBFS.isEmpty()) {
+				City city = toVisitBFS.poll();
 				if (!visited.contains(city)) {
 
 					if (city.type == Type.DESTINATION) {
@@ -421,6 +395,7 @@ public class AirlineCrews {
 							path.add(previous);
 							previous = mapCityAndPrevious.get(previous);
 						}
+						Collections.reverse(path);
 						return path;
 					} 
 					visited.add(city);
@@ -429,7 +404,7 @@ public class AirlineCrews {
 
 						for (City neightboor : neightboorhood ) {
 							if (!visited.contains(neightboor)) {
-								toVisitDFS.add(neightboor);
+								toVisitBFS.add(neightboor);
 								mapCityAndPrevious.put(neightboor, city);
 							}
 						}
