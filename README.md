@@ -1,6 +1,6 @@
 # Algorithms
 
-1. Maxflow - Mincut :  
+### Maxflow - Mincut :  
 
 Some java class to find the maxflow of a problem: 
  - [Evacuation](src/week1/Evacuation.java): compute the flow from a source to a destination. The most generic implementation.
@@ -9,3 +9,8 @@ Some java class to find the maxflow of a problem:
  
   See [Maxflow-Mincut.pdf](src/resources/Maxflow-Mincut.pdf)
   
+  
+### Linear Problems :
+
+
+  See [LinearProblems.pdf](src/resources/LinearProblems.pdf)
