@@ -37,12 +37,12 @@ class EnergyValues {
 
 			double a[][] = new double[size][size];
 			double b[] = new double[size];
-			int value = 2;
+			int value = 1;
 			for (int i = 0; i < size; i++) {
 				for (int j = 0; j < size; j++) {
-					a[i][j] = value*(i+j);
+					a[i][j] = Double.valueOf(Math.random() * value * 10 +1).intValue();
 				}
-				b[i] = i+1;
+				b[i] = size*i+1;
 			}
 
 			return new Equation(a, b);
@@ -83,7 +83,7 @@ class EnergyValues {
 				pivot.raw = freeRaw;
 			}
 		}
-		return pivot;
+		return columnUsable ? pivot : null;
 	}
 
 	static void SwapLines(double a[][], double b[], boolean used_raws[], Position pivot) {
@@ -151,6 +151,9 @@ class EnergyValues {
 		Position position = new Position(0, 0);
 		for (int step = 0; step < size; ++step) {
 			position = SelectPivotElement(a, used_raws, used_columns, position);
+			if (position == null) {
+				return null;
+			}
 			SwapLines(a, b, used_raws, position);
 			ProcessPivotElement(a, b, position);
 			MarkPivotElementUsed(position, used_raws, used_columns);
@@ -187,6 +190,10 @@ class EnergyValues {
 		Equation equation = ReadEquation();
 		double[] solution = SolveEquation(equation);
 		if (useMock) {
+			if (solution == null) {
+				System.err.println("no solution");
+				return;
+			}
 			long stop = new Date().getTime();
 			System.err.println("time: " + (stop - start));
 			Equation equationControl = ReadEquation();
