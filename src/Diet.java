@@ -7,14 +7,23 @@ public class Diet {
 	PrintWriter out;
 	StringTokenizer st;
 	boolean eof;
-	int constraint;
+	int constraints;
 	int dishes;
-	double[][] A;
-	double[] values;
+	double[][] constraintByDish;
+	double[] maxByConstraint;
 	double[] pleasures;
 	double[] answer;
 
 	int solveDietProblem() {
+		
+		//constraintByDish * answer <= maxByConstraint
+		//Maximize pleasures * answer
+		
+		double[] coef = new double [constraints];
+		//Dual programm: Find coef st 
+		// coef * constraintByDish = pleasures
+		// and then pleasures * answer <= coef * maxByConstraint 
+		
 		Arrays.fill(answer, 1);
 		// Write your code here
 		return 0;
@@ -29,18 +38,20 @@ public class Diet {
 	private void prepareContext() throws IOException {
 		br = new BufferedReader(new InputStreamReader(System.in));
 		out = new PrintWriter(System.out);
-		constraint = nextInt();
+		constraints = nextInt();
 		dishes = nextInt();
-		A = new double[constraint][dishes];
-		for (int i = 0; i < constraint; i++) {
+		
+		constraintByDish = new double[constraints][dishes];
+		for (int i = 0; i < constraints; i++) {
 			for (int j = 0; j < dishes; j++) {
-				A[i][j] = nextInt();
+				constraintByDish[i][j] = nextInt();
 			}
 		}
-		values = new double[constraint];
-		for (int i = 0; i < constraint; i++) {
-			values[i] = nextInt();
+		maxByConstraint = new double[constraints]; 
+		for (int i = 0; i < constraints; i++) {
+			maxByConstraint[i] = nextInt();
 		}
+		
 		pleasures = new double[dishes];
 		for (int i = 0; i < dishes; i++) {
 			pleasures[i] = nextInt();
