@@ -33,16 +33,15 @@ class EnergyValues {
 	static Equation ReadEquation() throws IOException {
 
 		if (useMock) {
-			int size = 5;
+			int size = 20;
 
 			double a[][] = new double[size][size];
 			double b[] = new double[size];
-			int value = 1;
 			for (int i = 0; i < size; i++) {
 				for (int j = 0; j < size; j++) {
-					a[i][j] = Double.valueOf(Math.random() * value * 10 +1).intValue();
+					a[i][j] = Double.valueOf(Math.random() * 2000 -1000).intValue();
 				}
-				b[i] = size*i+1;
+				b[i] =  Double.valueOf(Math.random() * 2000 -1000).intValue();
 			}
 
 			return new Equation(a, b);
@@ -184,10 +183,20 @@ class EnergyValues {
 
 	public static void main(String[] args) throws IOException {
 		long start = 0;
+		Equation equation = ReadEquation();
+		Equation equationControl = null;
 		if (useMock) {
 			start = new Date().getTime();
+			double[][] a = new double[equation.a.length][equation.a.length];
+			double[] b = new double [equation.b.length];
+			for (int i = 0; i < a.length; i ++) {
+				for (int j = 0; j < a.length; j++) {
+					a[i][j] = equation.a[i][j];
+				}
+				b[i] = equation.b[i];
+			}
+			equationControl = new Equation(a, b);
 		}
-		Equation equation = ReadEquation();
 		double[] solution = SolveEquation(equation);
 		if (useMock) {
 			if (solution == null) {
@@ -196,7 +205,7 @@ class EnergyValues {
 			}
 			long stop = new Date().getTime();
 			System.err.println("time: " + (stop - start));
-			Equation equationControl = ReadEquation();
+
 			double total = 0;
 			double[][] a = equationControl.a;
 			int size = a.length;
