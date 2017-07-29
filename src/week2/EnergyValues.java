@@ -1,6 +1,5 @@
 package week2;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Scanner;
 
@@ -58,6 +57,7 @@ class EnergyValues {
 					a[raw][column] = scanner.nextInt();
 				b[raw] = scanner.nextInt();
 			}
+			scanner.close();
 			return new Equation(a, b);
 		}
 	}
