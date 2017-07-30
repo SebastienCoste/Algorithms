@@ -1,3 +1,4 @@
+package week2;
 import java.io.*;
 import java.util.*;
 
@@ -13,7 +14,7 @@ public class Diet {
 	double[] maxByConstraint;
 	double[] pleasures;
 	double[] answer;
-	boolean useMock = true;
+	boolean useMock = false;
 
 	double maxValue = Double.NEGATIVE_INFINITY;
 	static double INFINITY = Math.pow(10,9);

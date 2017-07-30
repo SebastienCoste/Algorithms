@@ -1,6 +1,6 @@
 # Algorithms
 
-### Maxflow - Mincut :  
+### Maxflow - Mincut Problem:  
 
 Some java class to find the maxflow of a problem: 
  - [Evacuation](src/week1/Evacuation.java): compute the flow from a source to a destination. The most generic implementation.
@@ -10,7 +10,16 @@ Some java class to find the maxflow of a problem:
   See [Maxflow-Mincut.pdf](src/resources/Maxflow-Mincut.pdf)
   
   
-### Linear Problems :
+### Linear Problems:
 
+Some java class to solve linear equalities and inequalities
+  - [EnergyValues](src/week2/EnergyValues.java): Solving n linear equalities of n variables using gaussian elimination
+  - [Diet](src/week2/Diet.java): Solving n linear inequalities of m<n variables, inspirated from [Simplex](src/fr/sttc/problems/linear/Simplex.java)
 
   See [LinearProblems.pdf](src/resources/LinearProblems.pdf)
+  
+  
+### NP-complete Problems:
+
+
+  See [NPCompleteProblems.pdf](src/resources/NPCompleteProblems.pdf)  
