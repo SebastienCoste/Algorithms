@@ -13,10 +13,32 @@ public class Diet {
 	double[] maxByConstraint;
 	double[] pleasures;
 	double[] answer;
+	boolean useMock = true;
 
 	double maxValue = Double.NEGATIVE_INFINITY;
 	static double INFINITY = Math.pow(10,9);
 	private boolean bounded = true;
+
+
+	private void prepareMockContext() {
+
+		out = new PrintWriter(System.out);
+
+		constraints = 3;
+		dishes = 2;
+
+		double [][] constraintByDish = {{-1., -1.}, {1., 0.}, {0., 1.}};
+		this.constraintByDish = constraintByDish;
+
+		double [] maxByConstraint = {-1, 2, 2};
+		this.maxByConstraint = maxByConstraint;
+
+		double[] pleasures = {-1, 2};
+		this.pleasures = pleasures;
+
+		answer = new double[dishes];
+	}
+
 
 	int solveDietProblem(int numberIneq) {
 
@@ -27,13 +49,19 @@ public class Diet {
 			indexesOfIneq[i] = i;
 		}
 		//		int bufferData[]=new int[dishes];
-		combinateDishesIneqInCOnstraintsPossibilities(indexesOfIneq, numberIneq, dishes, 0, new int[dishes], 0);
+		combinateDishesIneqInConstraintsPossibilities(indexesOfIneq, numberIneq, dishes, 0, new int[dishes], 0);
 
+		if (maxValue == Double.NEGATIVE_INFINITY){
+			return -1;
+		}
+		if (!bounded){
+			return 1;
+		}
 		// Write your code here
 		return 0;
 	}
 
-	void combinateDishesIneqInCOnstraintsPossibilities(int indexesOfIneq[], int numberIneq, int variables, int index,
+	void combinateDishesIneqInConstraintsPossibilities(int indexesOfIneq[], int numberIneq, int variables, int index,
 			int bufferData[], int endIndex)
 	{
 		// Current combination is ready to be printed, print it
@@ -52,11 +80,11 @@ public class Diet {
 
 		// current is included, put next at next location
 		bufferData[index] = indexesOfIneq[endIndex];
-		combinateDishesIneqInCOnstraintsPossibilities(indexesOfIneq, numberIneq, variables, index+1, bufferData, endIndex+1);
+		combinateDishesIneqInConstraintsPossibilities(indexesOfIneq, numberIneq, variables, index+1, bufferData, endIndex+1);
 
 		// current is excluded, replace it with next (Note that
 		// i+1 is passed, but index is not changed)
-		combinateDishesIneqInCOnstraintsPossibilities(indexesOfIneq, numberIneq, variables, index, bufferData, endIndex+1);
+		combinateDishesIneqInConstraintsPossibilities(indexesOfIneq, numberIneq, variables, index, bufferData, endIndex+1);
 	}
 
 	private double computeVal(double[] result){
@@ -66,13 +94,13 @@ public class Diet {
 		}
 		return val;
 	}
-	
+
 	private boolean satisfiesAllInEq(double[] result){
 		//check to see if eq satisfies regular equations
 		for (int i=0; i < constraints; i++){
 			double inEqSum = 0;
 			for(int j= 0; j < dishes; j++){
-					inEqSum += result[j] * this.constraintByDish[i][j];
+				inEqSum += result[j] * this.constraintByDish[i][j];
 			}
 			if (inEqSum > maxByConstraint[i] + Math.pow(10, -3)){
 				return false;
@@ -80,20 +108,21 @@ public class Diet {
 		}
 		//check to see if it satisfies constraints
 		for (int i=0 ; i < dishes; i++){
-			if (result[i] * -1 > Math.pow(10, -3)){
+			if (result[i] < 0 - Math.pow(10, -3)){
+				//				if (result[i] * -1 > Math.pow(10, -3)){
 				return false;
 			}
 		}
 		return true;
 	}
-	
+
 	private void solveAsEqualities(Set<Integer> subset){
 		double[][] A = new double[dishes][dishes];
 		double[] b = new double[dishes];
 		prepareMatrix(subset, A, b);
-		LinearEqualitySolver les = new LinearEqualitySolver(A, b);
+		LinearEqualitySolver les = new LinearEqualitySolver(A, b, true);
 		double[] solution = les.solveEquation();
-		
+
 		if (solution == null){
 			return;
 		}
@@ -111,7 +140,7 @@ public class Diet {
 			}
 		}
 	}
-	
+
 	private void prepareMatrix(Set<Integer> set, double[][] matrix, double[] values){
 		int index = 0;
 		for (Integer val: set) {
@@ -133,10 +162,14 @@ public class Diet {
 		}
 	}
 	void solve() throws IOException {
-		prepareContext();
+		if (useMock) {
+			prepareMockContext();
+		} else {
+			prepareContext();
+		}
 		int numberIneq = constraints + dishes +1;
 		int status = solveDietProblem(numberIneq);
-		printResult(dishes, answer, status);
+		printResult(status);
 	}
 
 	private void prepareContext() throws IOException {
@@ -163,29 +196,30 @@ public class Diet {
 		answer = new double[dishes];
 	}
 
-	private void printResult(int dishes, double[] ansx, int status) {
-		if (status == -1) {
-			out.printf("No solution\n");
-			return;
-		}
-		if (status == 0) {
-			out.printf("Bounded solution\n");
-			for (int i = 0; i < dishes; i++) {
-				out.printf("%.18f%c", ansx[i], i + 1 == dishes ? '\n' : ' ');
+	private void printResult(int status) {
+		try {
+			if (status == -1) {
+				out.printf("No solution\n");
+				return;
 			}
-			return;
+			if (status == 0) {
+				out.printf("Bounded solution\n");
+				for (int i = 0; i < dishes; i++) {
+					out.printf("%.18f%c", answer[i], i + 1 == dishes ? '\n' : ' ');
+				}
+				return;
+			}
+			if (status == 1) {
+				out.printf("Infinity\n");
+				return;
+			}
+		} finally {
+			out.close();
 		}
-		if (status == 1) {
-			out.printf("Infinity\n");
-			return;
-		}
-
-
-		out.close();
 	}
 
 	public static void main(String[] args) throws IOException {
-		new Simplex().solve();
+		new Diet().solve();
 	}
 
 	String nextToken() {
@@ -243,21 +277,25 @@ public class Diet {
 	static class LinearEqualitySolver {
 
 		Equation equation = null;
-		public LinearEqualitySolver(double[][] a, double[] b) {
+		public LinearEqualitySolver(double[][] a, double[] b, boolean copy) {
 
-			double[][] ea = new double[a.length][a[0].length];
-			for (int i=0; i < a.length; i++){
-				for (int j=0; j< a[0].length; j++){
-					ea[i][j] = a[i][j];
+			if (copy) {
+				double[][] ea = new double[a.length][a[0].length];
+				for (int i=0; i < a.length; i++){
+					for (int j=0; j< a[0].length; j++){
+						ea[i][j] = a[i][j];
+					}
 				}
-			}
 
-			double[] eb = new double[b.length];
-			for (int i=0; i< b.length; i++){
-				eb[i] = b[i];
-			}
+				double[] eb = new double[b.length];
+				for (int i=0; i< b.length; i++){
+					eb[i] = b[i];
+				}
 
-			equation = new Equation(ea, eb);
+				equation = new Equation(ea, eb);
+			} else {
+				equation = new Equation(a, b);
+			}
 
 			//			   double[] solution = solveEquation(equation);
 		}
