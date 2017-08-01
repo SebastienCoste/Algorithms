@@ -1,3 +1,4 @@
+package coursera.algoonstring.week1;
 import java.util.*;
 import java.io.*;
 import java.util.zip.CheckedInputStream;
