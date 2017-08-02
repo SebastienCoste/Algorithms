@@ -1,7 +1,7 @@
 import java.util.*;
 import java.io.*;
 
-public class tree_height {
+public class TreeHeightProcess {
     class FastScanner {
 		StringTokenizer tok = new StringTokenizer("");
 		BufferedReader in;
@@ -50,7 +50,7 @@ public class tree_height {
             new Thread(null, new Runnable() {
                     public void run() {
                         try {
-                            new tree_height().run();
+                            new TreeHeightProcess().run();
                         } catch (IOException e) {
                         }
                     }

@@ -23,7 +23,7 @@ class Bracket {
     int position;
 }
 
-class check_brackets {
+class CheckBrackets {
     public static void main(String[] args) throws IOException {
         InputStreamReader input_stream = new InputStreamReader(System.in);
         BufferedReader reader = new BufferedReader(input_stream);

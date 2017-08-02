@@ -37,7 +37,7 @@ class Buffer {
     private ArrayList<Integer> finish_time_;
 }
 
-class process_packages {
+class ProcessPackages {
     private static ArrayList<Request> ReadQueries(Scanner scanner) throws IOException {
         int requests_count = scanner.nextInt();
         ArrayList<Request> requests = new ArrayList<Request>();
